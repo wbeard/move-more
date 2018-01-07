@@ -1,131 +1,122 @@
 open Utils;
 
-requireCSS("./settings.css");
-requireCSS("./setting.css");
+open Json.Encode;
 
-let saveLocally = (settings) =>
-  switch (Js.Json.stringifyAny(settings)) {
-  | None => ()
-  | Some(stringifiedSettings) => Dom.Storage.(localStorage |> setItem(namespace, stringifiedSettings))
-  };
+require("./settings.css");
 
-type settings = 
+require("./setting.css");
+
+type settings =
   | Time
-  | Duration
-  | Location
-  | Finish;
+  | Duration;
 
-type action = 
+type action =
   | SetActiveSetting(settings)
   | UpdateDuration(int)
-  | UpdateLocation(string)
   | UpdateTime(string);
 
 type state = {
   activeSetting: settings,
   duration: int,
-  location: string,
   showSummary: bool,
   time: string
 };
 
 let component = ReasonReact.reducerComponent("Settings");
 
-let make = (_) => {
+let make = (~duration, ~time, _) => {
   ...component,
-  initialState: () => {
-    activeSetting: Time,
-    duration: 15,
-    location: "the living room",
-    showSummary: false,
-    time: "06:00"
-  },
-  reducer: (action, state) => 
+  initialState: () => {activeSetting: Time, duration, showSummary: false, time},
+  reducer: (action, state) =>
     switch action {
-    | SetActiveSetting(value) => ReasonReact.Update({ ...state, activeSetting: value, showSummary: true })
-    | UpdateLocation(value) => ReasonReact.Update({ ...state, location: value }) 
-    | UpdateDuration(value) => ReasonReact.Update({ ...state, duration: value })
-    | UpdateTime(value) => ReasonReact.Update({ ...state, time: value })
+    | SetActiveSetting(value) =>
+      ReasonReact.Update({...state, activeSetting: value, showSummary: true})
+    | UpdateDuration(value) =>
+      ReasonReact.UpdateWithSideEffects(
+        {...state, duration: value},
+        (
+          ({state}) =>
+            saveLocally(
+              object_([
+                ("duration", value |> int),
+                ("time", state.time |> string)
+              ])
+            )
+        )
+      )
+    | UpdateTime(value) =>
+      ReasonReact.UpdateWithSideEffects(
+        {...state, time: value},
+        (
+          ({state}) =>
+            saveLocally(
+              object_([
+                ("duration", state.duration |> int),
+                ("time", value |> string)
+              ])
+            )
+        )
+      )
     },
-  render: ({ state, reduce }) => {
+  render: ({state, reduce}) =>
     <div className="Settings">
-      {
-        switch state.showSummary {
-        | true => <Summary
-                    duration={state.duration} 
-                    location={state.location} 
-                    time={state.time}
-                  />
-        | false => ReasonReact.nullElement
-        }
-      }
-      {
+      (
+        state.showSummary ?
+          <Summary duration=state.duration time=state.time /> :
+          ReasonReact.nullElement
+      )
+      (
         switch state.activeSetting {
         | Time =>
           <div className="Setting">
-            <label className="Label" htmlFor="meditation-time">
-              (str("What time do you want to meditate?"))
-            </label>
-            <input 
-              className="Input" 
-              id="meditation-time" 
-              _type="time" 
-              value={ state.time }
-              onChange=(reduce((evt) => UpdateTime(valueFromEvent(evt))))
-            />
-            <button 
-              className="Button" 
-              onClick=(reduce(
-                (_) => {
-                  SetActiveSetting(Duration);
-                }
-              ))>
+            <div className="Row">
+              <label className="Label" htmlFor="meditation-time">
+                (str("What time do you want to meditate?"))
+              </label>
+            </div>
+            <div className="Row">
+              <input
+                className="Input"
+                id="meditation-time"
+                _type="time"
+                value=state.time
+                onChange=(reduce(evt => UpdateTime(valueFromEvent(evt))))
+              />
+            </div>
+            <div className="Row">
+              <button
+                className="Button"
+                onClick=(reduce((_) => SetActiveSetting(Duration)))>
                 (str("Set time"))
-            </button>
+              </button>
+            </div>
           </div>
-        | Duration => 
+        | Duration =>
           <div className="Setting">
-            <label className="Label" htmlFor="meditation-duration">
-              (str("How long do you want to meditate?"))
-            </label>
-            <input 
-              className="Input" 
-              id="meditation-duration" 
-              _type="number"
-              value={ string_of_int(state.duration) }                
-              step={1.0}
-              onChange=(reduce((evt) => UpdateDuration(int_of_string(valueFromEvent(evt)))))
-            />
-            <button 
-              className="Button" 
-              onClick=(reduce(
-                (_) => SetActiveSetting(Location)
-              ))>
-                (str("Set duration"))
-            </button>
+            <div className="Row">
+              <label className="Label" htmlFor="meditation-duration">
+                (str("How long do you want to meditate?"))
+              </label>
+            </div>
+            <div className="Row">
+              <input
+                className="Input"
+                id="meditation-duration"
+                _type="number"
+                value=(string_of_int(state.duration))
+                step=1.0
+                onChange=(
+                  reduce(evt =>
+                    UpdateDuration(int_of_string(valueFromEvent(evt)))
+                  )
+                )
+              />
+            </div>
+            <div className="Row">
+              <a className="Button" href="#/"> (str("Set duration")) </a>
+            </div>
           </div>
-        | Location => 
-          <div className="Setting">
-            <label className="Label" htmlFor="meditation-location">
-              (str("Where will you meditate?"))
-            </label>
-            <input 
-              className="Input" 
-              id="meditation-location" 
-              value={ state.location }
-              onChange=(reduce((evt) => UpdateLocation(valueFromEvent(evt))))           
-            />
-            <button 
-              className="Button" 
-              onClick=(reduce(
-                (_) => SetActiveSetting(Finish)
-              ))>
-                (str("Set location"))
-            </button>
-          </div>
-        | Finish => ReasonReact.nullElement
         }
-      }
+      )
     </div>
-  }
 };

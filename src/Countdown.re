@@ -1,25 +1,27 @@
 open Utils;
 
-requireCSS("./countdown.css");
+require("./countdown.css");
 
 let component = ReasonReact.statelessComponent("Coundown");
 
-let make = (~duration, ~location, ~until, ~units, _children) => {
+let make = (~duration, ~until, ~units, _children) => {
   ...component,
   render: (_) =>
     <div className="Countdown">
-      <p className="Count"> (str(string_of_int(int_of_float(until)))) </p>
-      <p className="Description">
-        (
-          str(
-            units
-            ++ " until your "
-            ++ duration
-            ++ " minute meditation session in "
-            ++ location
-            ++ "."
+      <div className="Row">
+        <p className="Count"> (str(string_of_int(int_of_float(until)))) </p>
+      </div>
+      <div className="Row">
+        <p className="Description">
+          (
+            str(
+              units
+              ++ " until your "
+              ++ string_of_int(duration)
+              ++ " minute meditation session."
+            )
           )
-        )
-      </p>
+        </p>
+      </div>
     </div>
 };

@@ -1,6 +1,6 @@
 open Utils;
 
-requireCSS("./home.css");
+require("./home.css");
 
 let resolveDateFromTime = (time, date) => {
   let currentHour = DateFns.getHours(date);
@@ -17,16 +17,42 @@ let resolveDateFromTime = (time, date) => {
     } else {
       DateFns.addDays(1.0, date);
     };
-
-    beginningDate
-    |> DateFns.setHours(appointmentHour)
-    |> DateFns.setMinutes(appointmentMinute)
-    |> DateFns.setSeconds(0.0);
+  beginningDate
+  |> DateFns.setHours(appointmentHour)
+  |> DateFns.setMinutes(appointmentMinute)
+  |> DateFns.setSeconds(0.0);
 };
+
+type countdown = {
+  until: float,
+  units: string,
+  showStartButton: bool
+};
+
 let calculateUntil = time => {
   let currentDate = createDate();
   let nextDate = resolveDateFromTime(time, currentDate);
-  DateFns.differenceInHours(nextDate, currentDate);
+  if (DateFns.differenceInHours(nextDate, currentDate) != 0.0) {
+    {
+      until: DateFns.differenceInHours(nextDate, currentDate),
+      units: "hours",
+      showStartButton: false
+    };
+  } else if (DateFns.differenceInMinutes(nextDate, currentDate) != 0.0) {
+    {
+      until: DateFns.differenceInMinutes(nextDate, currentDate),
+      units: "minutes",
+      showStartButton: false
+    };
+  } else {
+    let showStartButton =
+      DateFns.differenceInSeconds(nextDate, currentDate) <= 60.0;
+    {
+      until: DateFns.differenceInSeconds(nextDate, currentDate),
+      units: "seconds",
+      showStartButton
+    };
+  };
 };
 
 type action =
@@ -35,31 +61,52 @@ type action =
 type state = {
   until: float,
   units: string,
+  showStartButton: bool,
   timerId: ref(option(Js.Global.intervalId))
 };
 
 let component = ReasonReact.reducerComponent("Home");
 
-let make =
-    (~duration="15", ~location="the living room", ~time="06:30", _children) => {
+let make = (~duration, ~time, _children) => {
   ...component,
   reducer: (action, state) =>
     switch action {
-    | Tick => ReasonReact.Update({...state, until: calculateUntil(time)})
+    | Tick =>
+      let result = calculateUntil(time);
+      ReasonReact.Update({
+        ...state,
+        until: result.until,
+        units: result.units,
+        showStartButton: result.showStartButton
+      });
     },
-  initialState: () => {until: calculateUntil(time), timerId: ref(None), units: "hours"},
+  initialState: () => {
+    let result = calculateUntil(time);
+    {
+      until: result.until,
+      timerId: ref(None),
+      units: result.units,
+      showStartButton: result.showStartButton
+    };
+  },
   didMount: self => {
     self.state.timerId :=
-      Some(Js.Global.setInterval(self.reduce((_) => Tick), 60000));
+      Some(Js.Global.setInterval(self.reduce((_) => Tick), 1000));
     ReasonReact.NoUpdate;
   },
   render: ({state}) =>
     <div className="Home">
-      {
-        switch state.until {
-        | 0.0 => <div />
-        | _ => <Countdown until={state.until} units={state.units} duration={duration} location={location} />
+      <Countdown until=state.until units=state.units duration />
+      (
+        if (state.showStartButton === true) {
+          <div className="Row">
+            <a className="Button" href="#/meditation">
+              (str("Begin Meditation"))
+            </a>
+          </div>;
+        } else {
+          ReasonReact.nullElement;
         }
-      }
+      )
     </div>
 };

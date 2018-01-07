@@ -4,6 +4,7 @@
     "src"
   ],
   "bs-dependencies": [
+    "@glennsl/bs-json",
     "reason-react",
     "bs-date-fns",
     "bs-director",

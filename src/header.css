@@ -1,7 +1,21 @@
 .Header {
+  display: flex;
   background-color: #27ae60;  
   color: #ecf0f1;
   font-size: 1rem;
   padding: 1rem;
   text-shadow: 1px 1px rgba(0, 0, 0, 0.5);  
+}
+
+.Logo {
+  flex: 1;
+}
+
+.Navigation {
+  align-self: flex-end;
+}
+
+.Navigation-button {
+  color: #ecf0f1;
+  text-decoration: none;
 }

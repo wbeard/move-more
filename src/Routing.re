@@ -1,3 +1,4 @@
-type route = 
+type t =
   | Home
+  | Meditation
   | Settings;

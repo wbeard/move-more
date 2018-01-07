@@ -1,11 +1,8 @@
-.Count {
-  text-align: center;
-  font-size: 10rem;
-  text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
-  margin: 0;  
+.Meditation {
+  padding: 3rem;
 }
 
-.Description {
+.Meditation-text {
   background-color: transparent;
   border: none;
   color: #fff;
