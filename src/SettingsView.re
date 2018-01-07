@@ -1,42 +1,44 @@
 open Utils;
 
+open Utils.DomUtils;
+
+open Utils.ReactUtils;
+
+open Utils.JsInterop;
+
 open Json.Encode;
+
+open Types;
 
 require("./settings.css");
 
 require("./setting.css");
 
-type settings =
-  | Time
-  | Duration;
-
 type action =
-  | SetActiveSetting(settings)
+  | ShowSummary
   | UpdateDuration(int)
   | UpdateTime(string);
 
 type state = {
-  activeSetting: settings,
   duration: int,
   showSummary: bool,
   time: string
 };
 
-let component = ReasonReact.reducerComponent("Settings");
+let component = ReasonReact.reducerComponent("SettingsView");
 
-let make = (~duration, ~time, _) => {
+let make = (~duration, ~setting, ~time, _) => {
   ...component,
-  initialState: () => {activeSetting: Time, duration, showSummary: false, time},
+  initialState: () => {duration, showSummary: false, time},
   reducer: (action, state) =>
     switch action {
-    | SetActiveSetting(value) =>
-      ReasonReact.Update({...state, activeSetting: value, showSummary: true})
+    | ShowSummary => ReasonReact.Update({...state, showSummary: true})
     | UpdateDuration(value) =>
       ReasonReact.UpdateWithSideEffects(
         {...state, duration: value},
         (
           ({state}) =>
-            saveLocally(
+            PersistenceUtils.save(
               object_([
                 ("duration", value |> int),
                 ("time", state.time |> string)
@@ -49,7 +51,7 @@ let make = (~duration, ~time, _) => {
         {...state, time: value},
         (
           ({state}) =>
-            saveLocally(
+            PersistenceUtils.save(
               object_([
                 ("duration", state.duration |> int),
                 ("time", value |> string)
@@ -66,8 +68,8 @@ let make = (~duration, ~time, _) => {
           ReasonReact.nullElement
       )
       (
-        switch state.activeSetting {
-        | Time =>
+        switch setting {
+        | Settings.Time =>
           <div className="Setting">
             <div className="Row">
               <label className="Label" htmlFor="meditation-time">
@@ -84,14 +86,15 @@ let make = (~duration, ~time, _) => {
               />
             </div>
             <div className="Row">
-              <button
+              <a
                 className="Button"
-                onClick=(reduce((_) => SetActiveSetting(Duration)))>
+                onClick=(reduce((_) => ShowSummary))
+                href="#/settings/duration">
                 (str("Set time"))
-              </button>
+              </a>
             </div>
           </div>
-        | Duration =>
+        | Settings.Duration =>
           <div className="Setting">
             <div className="Row">
               <label className="Label" htmlFor="meditation-duration">

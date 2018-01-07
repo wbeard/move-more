@@ -1,27 +1,10 @@
-open Utils;
+open Utils.JsInterop;
+
+open Utils.ReactUtils;
+
+open Utils.TimeUtils;
 
 require("./home.css");
-
-let resolveDateFromTime = (time, date) => {
-  let currentHour = DateFns.getHours(date);
-  let currentMinute = DateFns.getMinutes(date);
-  let appointmentHour = float_of_string(Js.String.split(":", time)[0]);
-  let appointmentMinute = float_of_string(Js.String.split(":", time)[1]);
-  let beginningDate =
-    if (appointmentHour > currentHour) {
-      date;
-    } else if (appointmentHour < currentHour) {
-      DateFns.addDays(1.0, date);
-    } else if (appointmentMinute > currentMinute) {
-      date;
-    } else {
-      DateFns.addDays(1.0, date);
-    };
-  beginningDate
-  |> DateFns.setHours(appointmentHour)
-  |> DateFns.setMinutes(appointmentMinute)
-  |> DateFns.setSeconds(0.0);
-};
 
 type countdown = {
   until: float,
@@ -65,7 +48,7 @@ type state = {
   timerId: ref(option(Js.Global.intervalId))
 };
 
-let component = ReasonReact.reducerComponent("Home");
+let component = ReasonReact.reducerComponent("HomeView");
 
 let make = (~duration, ~time, _children) => {
   ...component,
@@ -83,10 +66,10 @@ let make = (~duration, ~time, _children) => {
   initialState: () => {
     let result = calculateUntil(time);
     {
-      until: result.until,
+      showStartButton: result.showStartButton,
       timerId: ref(None),
       units: result.units,
-      showStartButton: result.showStartButton
+      until: result.until
     };
   },
   didMount: self => {
@@ -98,15 +81,13 @@ let make = (~duration, ~time, _children) => {
     <div className="Home">
       <Countdown until=state.until units=state.units duration />
       (
-        if (state.showStartButton === true) {
+        state.showStartButton ?
           <div className="Row">
             <a className="Button" href="#/meditation">
               (str("Begin Meditation"))
             </a>
-          </div>;
-        } else {
-          ReasonReact.nullElement;
-        }
+          </div> :
+          ReasonReact.nullElement
       )
     </div>
 };

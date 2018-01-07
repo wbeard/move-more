@@ -1,4 +1,6 @@
-open Utils;
+open Utils.JsInterop;
+
+open Utils.ReactUtils;
 
 require("./meditation.css");
 
@@ -15,7 +17,7 @@ type action =
 
 let interval = 1000;
 
-let component = ReasonReact.reducerComponent("Meditation");
+let component = ReasonReact.reducerComponent("MeditationView");
 
 let make = (~duration, _children) => {
   ...component,

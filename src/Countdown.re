@@ -1,4 +1,6 @@
-open Utils;
+open Utils.JsInterop;
+
+open Utils.ReactUtils;
 
 require("./countdown.css");
 
