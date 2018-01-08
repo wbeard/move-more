@@ -23,7 +23,7 @@ module PersistenceUtils = {
   let namespace = "move-more-settings";
   let get = () =>
     switch Dom.Storage.(localStorage |> getItem(namespace)) {
-    | None => {"duration": 10, "time": "07:00"}
+    | None => {"duration": 10, "time": "07:00", "calendared": false}
     | Some(settings) => JsInterop.unsafeJsonParse(settings)
     };
   let save = settings =>
@@ -67,9 +67,16 @@ module TimeUtils = {
     hours != 0 ?
       (hours |> string_of_int) ++ ":" :
       ""
-      ++ (minutes |> string_of_int)
+      ++ (
+        minutes > 10 ?
+          minutes |> string_of_int : "0" ++ (minutes |> string_of_int)
+      )
       ++ ":"
-      ++ (remainingSeconds == 0 ? "00" : string_of_int(remainingSeconds));
+      ++ (
+        remainingSeconds > 10 ?
+          remainingSeconds |> string_of_int :
+          "0" ++ (remainingSeconds |> string_of_int)
+      );
   };
   let twentyFourClockToTwelveClock = time => {
     let hour = Js.String.split(":", time)[0];

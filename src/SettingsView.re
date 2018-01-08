@@ -8,6 +8,8 @@ open Utils.JsInterop;
 
 open Json.Encode;
 
+open Utils.TimeUtils;
+
 open Types;
 
 require("./settings.css");
@@ -15,24 +17,37 @@ require("./settings.css");
 require("./setting.css");
 
 type action =
-  | ShowSummary
+  | Calendared
   | UpdateDuration(int)
   | UpdateTime(string);
 
 type state = {
+  calendared: bool,
   duration: int,
-  showSummary: bool,
   time: string
 };
 
 let component = ReasonReact.reducerComponent("SettingsView");
 
-let make = (~duration, ~setting, ~time, _) => {
+let make = (~duration, ~setting, ~calendared, ~time, _) => {
   ...component,
-  initialState: () => {duration, showSummary: false, time},
+  initialState: () => {duration, time, calendared},
   reducer: (action, state) =>
     switch action {
-    | ShowSummary => ReasonReact.Update({...state, showSummary: true})
+    | Calendared =>
+      ReasonReact.UpdateWithSideEffects(
+        {...state, calendared: true},
+        (
+          ({state}) =>
+            PersistenceUtils.save(
+              object_([
+                ("duration", state.duration |> int),
+                ("time", state.time |> string),
+                ("calendared", true |> bool)
+              ])
+            )
+        )
+      )
     | UpdateDuration(value) =>
       ReasonReact.UpdateWithSideEffects(
         {...state, duration: value},
@@ -62,11 +77,7 @@ let make = (~duration, ~setting, ~time, _) => {
     },
   render: ({state, reduce}) =>
     <div className="Settings">
-      (
-        state.showSummary ?
-          <Summary duration=state.duration time=state.time /> :
-          ReasonReact.nullElement
-      )
+      <Summary duration=state.duration time=state.time />
       (
         switch setting {
         | Settings.Time =>
@@ -86,10 +97,7 @@ let make = (~duration, ~setting, ~time, _) => {
               />
             </div>
             <div className="Row">
-              <a
-                className="Button"
-                onClick=(reduce((_) => ShowSummary))
-                href="#/settings/duration">
+              <a className="Button" href="#/settings/duration">
                 (str("Set time"))
               </a>
             </div>
@@ -116,7 +124,47 @@ let make = (~duration, ~setting, ~time, _) => {
               />
             </div>
             <div className="Row">
-              <a className="Button" href="#/"> (str("Set duration")) </a>
+              (
+                state.calendared ?
+                  <a className="Button" href="#/"> (str("Set duration")) </a> :
+                  <a className="Button" href="#/settings/calendar">
+                    (str("Set duration"))
+                  </a>
+              )
+            </div>
+          </div>
+        | Settings.Calendar =>
+          let nextMeditation =
+            DateFns.addDays(1.0, resolveDateFromTime(time, createDate()))
+            |> Js.Date.toISOString;
+          <div className="Setting">
+            <div className="Row">
+              <label className="Label" htmlFor="meditation-duration">
+                (str("Add your meditations to your Google calendar."))
+              </label>
+            </div>
+            <div className="Row">
+              <a
+                onClick=(reduce((_) => Calendared))
+                className="Button"
+                href=(
+                  "https://www.google.com/calendar/render?action=TEMPLATE&text=Meditate&dates="
+                  ++ nextMeditation
+                  ++ "/"
+                  ++ nextMeditation
+                  ++ "&details=Meditation+scheduled+with+MoveMore,+link+here:+http://www.example.com&location=Your+favorite+place+to+sit&sf=true&output=xml+trp=true"
+                )
+                target="_blank"
+                rel="nofollow">
+                (str("Add to Google calendar"))
+              </a>
+              <a className="Button" href="#/"> (str("Skip")) </a>
+            </div>
+          </div>;
+        | Settings.GoHome =>
+          <div className="Setting">
+            <div className="Row">
+              <a className="Button" href="#/"> (str("Go home")) </a>
             </div>
           </div>
         }

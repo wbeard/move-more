@@ -12,13 +12,14 @@ let make = (~duration, ~time, _children) => {
   ...component,
   render: (_) =>
     <div className="Summary">
-      (
-        str(
-          "You will meditate at "
-          ++ (time |> twentyFourClockToTwelveClock)
-          ++ " "
-        )
-      )
-      (str("for " ++ string_of_int(duration) ++ " minutes."))
+      (str("You will meditate at "))
+      <a className="Summary-link" href="#/settings/time">
+        (time |> twentyFourClockToTwelveClock |> str)
+      </a>
+      (str(" for "))
+      <a className="Summary-link" href="#/settings/duration">
+        (duration |> string_of_int |> str)
+      </a>
+      (str(" minutes."))
     </div>
 };

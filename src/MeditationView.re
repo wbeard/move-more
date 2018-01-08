@@ -6,7 +6,7 @@ open Utils.TimeUtils;
 
 require("./meditation.css");
 
-require("./settings.css");
+require("./setting.css");
 
 let audio = requireAudio("./resources/ocean.mp3");
 
@@ -57,9 +57,27 @@ let make = (~duration, _children) => {
     let now = createDate();
     let yes = Js.Boolean.to_js_boolean(true);
     <div className="Meditation">
-      <p className="Meditation-text">
-        (str(countdownClock(state.endTime, now)))
-      </p>
+      <div className="Row">
+        <p className="Meditation-text">
+          (str(countdownClock(state.endTime, now)))
+        </p>
+      </div>
+      (
+        state.finished ?
+          <div className="Row">
+            <a className="Button" href="#/"> (str("Go home")) </a>
+          </div> :
+          <div className="Row">
+            <a
+              className="Button Button-meditation"
+              onClick=(reduce((_) => state.muted ? Unmute : Mute))>
+              (state.muted ? str("Unmute") : str("Mute"))
+            </a>
+            <a className="Button Button-meditation" href="#/">
+              ("Stop" |> str)
+            </a>
+          </div>
+      )
       <audio
         muted=(Js.Boolean.to_js_boolean(state.muted))
         key="loop"
@@ -67,16 +85,6 @@ let make = (~duration, _children) => {
         autoPlay=yes
         src=audio
       />
-      <button
-        className="Button Button-mute"
-        onClick=(reduce((_) => state.muted ? Unmute : Mute))>
-        (state.muted ? str("Unmute") : str("Mute"))
-      </button>
-      (
-        state.finished ?
-          <a className="Button" href="#/"> (str("Go home")) </a> :
-          ReasonReact.nullElement
-      )
     </div>;
   }
 };

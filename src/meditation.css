@@ -1,5 +1,6 @@
 .Meditation {
   padding: 3rem;
+  text-align: center;
 }
 
 .Meditation-text {
@@ -13,9 +14,7 @@
   text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
 }
 
-.Button-mute {
-  position: absolute;
+.Button-meditation {
   font-size: 1rem;
-  bottom: 1rem;
-  left: 1rem;
+  margin-right: 0.5rem;
 }
