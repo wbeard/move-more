@@ -2,26 +2,30 @@ open Utils.JsInterop;
 
 open Utils.ReactUtils;
 
+open Utils.TimeUtils;
+
 require("./countdown.css");
 
 let component = ReasonReact.statelessComponent("Coundown");
 
-let make = (~duration, ~until, ~units, _children) => {
+let make = (~duration, ~time, ~until, ~units, _children) => {
   ...component,
   render: (_) =>
     <div className="Countdown">
       <div className="Row">
-        <p className="Count"> (str(string_of_int(int_of_float(until)))) </p>
+        <p className="Count">
+          (until |> int_of_float |> string_of_int |> str)
+        </p>
       </div>
       <div className="Row">
         <p className="Description">
           (
-            str(
-              units
-              ++ " until your "
-              ++ string_of_int(duration)
-              ++ " minute meditation session."
-            )
+            units
+            ++ " until your "
+            ++ (duration |> string_of_int)
+            ++ " minute meditation session at "
+            ++ (time |> twentyFourClockToTwelveClock)
+            |> str
           )
         </p>
       </div>

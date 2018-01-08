@@ -11,11 +11,11 @@ let renderForRoute = route =>
 
 let router =
   DirectorRe.makeRouter({
-    "/": () => renderForRoute(Routing.Home),
-    "/meditation": () => renderForRoute(Routing.Meditation),
-    "/settings": () => renderForRoute(Routing.Setting(Time)),
+    "/": () => Routing.Home |> renderForRoute,
+    "/meditation": () => Routing.Meditation |> renderForRoute,
+    "/settings": () => Routing.Setting(Time) |> renderForRoute,
     "/settings/:setting": setting =>
-      renderForRoute(Routing.Setting(Settings.fromStringToType(setting)))
+      Routing.Setting(Settings.fromStringToType(setting)) |> renderForRoute
   });
 
 DirectorRe.init(router, "/");

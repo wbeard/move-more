@@ -58,16 +58,18 @@ module TimeUtils = {
     |> DateFns.setSeconds(0.0);
   };
   let countdownClock = (from, to_) => {
-    let seconds = DateFns.differenceInSeconds(from, to_) |> int_of_float;
+    let seconds = to_ |> DateFns.differenceInSeconds(from) |> int_of_float;
     let hours = seconds |> secondsToHours;
-    let remaining = seconds - hours |> hoursToSeconds;
+    let remaining = hours > 0 ? seconds - hours |> hoursToSeconds : seconds;
     let minutes = remaining |> secondsToMinutes;
-    let remainingSeconds = remaining - minutes |> minutesToSeconds;
-    string_of_int(hours)
-    ++ ":"
-    ++ string_of_int(minutes)
-    ++ ":"
-    ++ string_of_int(remainingSeconds);
+    let remainingSeconds =
+      minutes > 0 ? remaining - (minutes |> minutesToSeconds) : seconds;
+    hours != 0 ?
+      (hours |> string_of_int) ++ ":" :
+      ""
+      ++ (minutes |> string_of_int)
+      ++ ":"
+      ++ (remainingSeconds == 0 ? "00" : string_of_int(remainingSeconds));
   };
   let twentyFourClockToTwelveClock = time => {
     let hour = Js.String.split(":", time)[0];

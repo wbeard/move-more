@@ -55,7 +55,7 @@ let make = (~duration, ~time, _children) => {
   reducer: (action, state) =>
     switch action {
     | Tick =>
-      let result = calculateUntil(time);
+      let result = time |> calculateUntil;
       ReasonReact.Update({
         ...state,
         until: result.until,
@@ -64,7 +64,7 @@ let make = (~duration, ~time, _children) => {
       });
     },
   initialState: () => {
-    let result = calculateUntil(time);
+    let result = time |> calculateUntil;
     {
       showStartButton: result.showStartButton,
       timerId: ref(None),
@@ -79,12 +79,12 @@ let make = (~duration, ~time, _children) => {
   },
   render: ({state}) =>
     <div className="Home">
-      <Countdown until=state.until units=state.units duration />
+      <Countdown time until=state.until units=state.units duration />
       (
         state.showStartButton ?
           <div className="Row">
             <a className="Button" href="#/meditation">
-              (str("Begin Meditation"))
+              ("Begin Meditation" |> str)
             </a>
           </div> :
           ReasonReact.nullElement

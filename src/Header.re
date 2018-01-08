@@ -11,11 +11,11 @@ let make = (_) => {
   render: (_) =>
     <div className="Header">
       <div className="Logo">
-        <a className="Navigation-button" href="#/"> (str("MoveMore")) </a>
+        <a className="Navigation-button" href="#/"> ("MoveMore" |> str) </a>
       </div>
       <div className="Navigation">
         <a className="Navigation-button" href="#/settings">
-          (str("Settings"))
+          ("Settings" |> str)
         </a>
       </div>
     </div>
